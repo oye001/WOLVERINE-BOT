@@ -38,11 +38,12 @@ var bot  = new Telegraf(process.env.BOT_TOKEN);
 var groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // - State -
-var caUnlocked        = false;
-var groupChatId       = null;
-var silenceTimer      = null;
-var imageMessages     = new Map();
-var silenceMessageId  = null;
+var caUnlocked       = false;
+var groupChatId      = null;
+var silenceTimer     = null;
+var lastCaMsgId      = {};   // chatId -> message_id for CA replies
+var lastXMsgId       = {};   // chatId -> message_id for X replies
+// silence breaker uses lastSilenceStore (declared near fireSilenceBreaker)
 var strikes        = new Map();
 var spamTracker    = new Map();
 var stickerTracker = new Map();
@@ -127,25 +128,27 @@ async function askGroqUnique(sysprompt, userMsg) {
 }
 
 // - Image helpers -
-async function deletePrevImage(chatId) {
-  var mid = imageMessages.get(chatId);
+async function deletePrevMsg(store, chatId) {
+  var mid = store[chatId];
   if (mid) {
     try { await bot.telegram.deleteMessage(chatId, mid); } catch (_) {}
-    imageMessages.delete(chatId);
+    delete store[chatId];
   }
 }
 
-async function sendImage(chatId, caption, extra) {
-  await deletePrevImage(chatId);
+async function sendImageWithStore(store, chatId, caption, extra) {
+  await deletePrevMsg(store, chatId);
   extra = extra || {};
   try {
     if (fs.existsSync(IMG)) {
       var m = await bot.telegram.sendPhoto(chatId, { source: IMG }, Object.assign({ caption: caption, parse_mode: "HTML" }, extra));
-      imageMessages.set(chatId, m.message_id);
+      store[chatId] = m.message_id;
       return m;
     }
   } catch (_) {}
-  return bot.telegram.sendMessage(chatId, caption, Object.assign({ parse_mode: "HTML" }, extra));
+  var m2 = await bot.telegram.sendMessage(chatId, caption, Object.assign({ parse_mode: "HTML" }, extra));
+  store[chatId] = m2.message_id;
+  return m2;
 }
 
 // - Auto-delete helper -
@@ -265,7 +268,7 @@ async function sendCaReply(ctx) {
     return ctx.reply(getNotLiveMsg());
   }
   var caption = await buildCaCaption();
-  await sendImage(ctx.chat.id, caption, {
+  await sendImageWithStore(lastCaMsgId, ctx.chat.id, caption, {
     reply_markup: {
       inline_keyboard: [[{ text: E.copy + " Copy CA", copy_text: { text: CA } }]],
     },
@@ -291,7 +294,7 @@ async function buildXCaption() {
 
 async function sendXReply(ctx) {
   var caption = await buildXCaption();
-  await sendImage(ctx.chat.id, caption, {
+  await sendImageWithStore(lastXMsgId, ctx.chat.id, caption, {
     reply_markup: {
       inline_keyboard: [[{ text: E.bird + " Follow on X", url: TWITTER }]],
     },
@@ -354,23 +357,15 @@ var silenceAngles = [
 ];
 var silenceIdx = 0;
 
+var lastSilenceStore = {}; // dedicated store for silence breaker
+
 async function fireSilenceBreaker() {
   if (!groupChatId) { resetSilence(); return; }
   var prompt = silenceAngles[silenceIdx % silenceAngles.length];
   silenceIdx++;
   try {
-    if (silenceMessageId) {
-      try { await bot.telegram.deleteMessage(groupChatId, silenceMessageId); } catch (_) {}
-      silenceMessageId = null;
-    }
     var caption = await askGroqUnique(systemPrompt(caUnlocked), prompt);
-    var sent;
-    if (fs.existsSync(IMG)) {
-      sent = await bot.telegram.sendPhoto(groupChatId, { source: IMG }, { caption: caption, parse_mode: "HTML" });
-    } else {
-      sent = await bot.telegram.sendMessage(groupChatId, caption, { parse_mode: "HTML" });
-    }
-    silenceMessageId = sent.message_id;
+    await sendImageWithStore(lastSilenceStore, groupChatId, caption, {});
   } catch (_) {}
   resetSilence();
 }

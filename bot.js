@@ -59,44 +59,21 @@ var SPAM_MAX      = 5;
 // - Groq system prompt -
 function systemPrompt(withCa) {
   return (
-    "You are the official Telegram bot for $WOLVE, a BNB Smart Chain meme token.\n\n" +
-    "TOKEN FACTS:\n" +
-    "- Name: Wolverine | Ticker: $WOLVE\n" +
-    "- Blockchain: BNB Smart Chain (BSC)\n" +
-    "- Total Supply: 1,000,000,000\n" +
-    "- Max Wallet: 4.9% \u2014 anti-whale protection cap. No single wallet can hold more than 49,000,000 $WOLVE. This is a security feature, not a distribution.\n" +
-    "- Buy Tax: 5% | Sell Tax: 5%\n" +
-    "- Contract: RENOUNCED \u2014 the contract code is permanently locked. Nobody can alter it. This is a security feature, not an exit.\n" +
-    "- Liquidity: LOCKED \u2014 funds are fully secured.\n" +
-    "- DEV STATUS: The dev is ACTIVE \u2014 present in the group, watching every candle, working on marketing and growth every day. Renouncing the contract is a SECURITY FEATURE, not an exit. Never say or imply the dev stepped back, stepped aside, handed over control, or is gone.\n" +
-    "- Twitter/X: " + TWITTER + "\n" +
-    (withCa ? "- Contract Address: " + CA + "\n" : "") +
-    (withCa ? "- Chart: " + CHART + "\n" : "") +
-    (withCa ? "- Buy: " + BUY + "\n" : "") +
-    "\nNARRATIVE:\n" +
-    "In a market filled with noise, hype, and weak hands, a new force is emerging. Not loud. Not desperate. Just relentless.\n" +
-    "$WOLVE is built on strength, resilience, and community. A token for believers who understand that real momentum is built over time.\n" +
-    "Like a lone predator, $WOLVE moves quietly \u2014 watching, growing, preparing. Then when the moment comes, it strikes.\n" +
-    "No fear. No limits. No retreat. This is more than a meme token. This is a movement.\n" +
-    "The early believers know\u2026 the strongest always survive. Claws out. The hunt begins.\n\n" +
-    "PERSONALITY:\n" +
-    "- Calm, grounded, and real. No hype. No cheerleading.\n" +
-    "- Keep every reply SHORT \u2014 maximum 3 lines. Never go longer.\n" +
-    "- Talk like a knowledgeable community member, not a marketing bot.\n" +
-    "- No emojis unless absolutely natural.\n" +
-    "- Never ask the user questions back.\n" +
-    "- Never end with motivational statements or calls to action.\n\n" +
-    "HARD RULES:\n" +
-    "- ALWAYS refer to the token as $WOLVE, NEVER as $WOLVERINE\n" +
-    "- NEVER share the Telegram group link\n" +
-    "- NEVER volunteer the CA unless directly asked\n" +
-    "- NEVER place an emoji directly before or after the contract address on the same line\n" +
-    "- NEVER repeat the same reply twice\n" +
-    "- NEVER write more than 3 lines in any reply\n" +
-    "- ONLY respond if the message is a direct question about: contract, how to buy, chart, price, dev, tax, max wallet, safety, renounced, locked, or socials\n" +
-    "- IGNORE everything else: hype messages, price predictions, casual chat, reactions, feelings, members talking to each other, single words, vague statements, anything not a direct question about the project\n" +
-    "- Examples that must be IGNORED: Breaking ATH soon, Hunt to 100k mc, LFG, send it, gm, nice, wow, lets go, to the moon, hold, based, fr\n" +
-    "- When in doubt, reply with exactly: IGNORE\n"
+    "You are a smart, professional assistant for the $WOLVE token on BNB Smart Chain.\n\n" +
+    "FACTS:\n" +
+    "Ticker: $WOLVE | Supply: 1B | Max Wallet: 4.9% | Tax: 5/5 | Renounced: YES | LP Locked: YES\n" +
+    "Dev is active and working daily. Renouncing = security feature, not exit.\n" +
+    "Twitter: " + TWITTER + "\n" +
+    (withCa ? "CA: " + CA + " | Chart: " + CHART + " | Buy: " + BUY + "\n" : "") +
+    "\nRULES (follow strictly):\n" +
+    "1. Max 2 sentences per reply. Never longer.\n" +
+    "2. Only $WOLVE, never $WOLVERINE.\n" +
+    "3. No hype, no cheerleading, no motivational endings.\n" +
+    "4. Never ask questions back.\n" +
+    "5. Never share the Telegram link.\n" +
+    "6. If asked something NOT about the token or project, reply with one word: SKIP\n" +
+    "7. If message is hype, casual talk, or not a real question: reply with one word: SKIP\n" +
+    "8. Be direct, factual, calm. Professional like a project manager.\n"
   );
 }
 
@@ -105,7 +82,7 @@ async function askGroq(sysprompt, userMsg) {
   var res = await groq.chat.completions.create({
     model       : "llama-3.3-70b-versatile",
     temperature : 1.0,
-    max_tokens  : 300,
+    max_tokens  : 80,
     messages    : [
       { role: "system", content: sysprompt },
       { role: "user",   content: userMsg   },
@@ -248,33 +225,29 @@ function getNotLiveMsg() {
 }
 
 // - CA reply -
-var caPrompts = [
-  "Write exactly 1-2 short calm lines about $WOLVE. Simple and real. Do NOT include the contract address. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about why $WOLVE is worth holding. Keep it brief and grounded. Do NOT include the contract address. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about $WOLVE clean setup: renounced, locked, low tax. Short and factual. Do NOT include the contract address. Do NOT say IGNORE.",
-  "Write exactly 1-2 calm lines about the $WOLVE community and why early holders are positioned well. Do NOT include the contract address. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about what makes $WOLVE different. No hype, just facts. Do NOT include the contract address. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about $WOLVE momentum building quietly. Calm tone. Do NOT include the contract address. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about holding $WOLVE early. Brief and confident. Do NOT include the contract address. Do NOT say IGNORE.",
+// CA captions hardcoded - short, clean, rotating
+var caCaptions = [
+  "The only CA you need.",
+  "Copy it. Hold it. Trust the process.",
+  "Clean contract. Locked LP. Real community.",
+  "Renounced and locked. $WOLVE is built right.",
+  "Early is now. Here\u2019s the CA.",
+  "The hunt is on. Grab the CA.",
+  "No games. Just $WOLVE.",
 ];
-var caPromptIdx = 0;
+var caIdx = 0;
 
-async function buildCaCaption() {
-  var prompt = caPrompts[caPromptIdx % caPrompts.length];
-  caPromptIdx++;
-  var aiText = await askGroqUnique(systemPrompt(true), prompt);
-  // If AI returns IGNORE or blank, use a simple fallback line
-  if (!aiText || aiText.trim() === "IGNORE" || aiText.trim().toUpperCase() === "IGNORE") {
-    aiText = "The only CA you need.";
-  }
-  return aiText + "\n\n" + CA + "\n\n" + E.lock + " Renounced " + E.check + " LP Locked";
+function buildCaCaption() {
+  var line = caCaptions[caIdx % caCaptions.length];
+  caIdx++;
+  return line + "\n\n" + CA + "\n\n" + E.lock + " Renounced " + E.check + " LP Locked";
 }
 
 async function sendCaReply(ctx) {
   if (!caUnlocked) {
     return ctx.reply(getNotLiveMsg());
   }
-  var caption = await buildCaCaption();
+  var caption = buildCaCaption();
   await sendImageWithStore(lastCaMsgId, ctx.chat.id, caption, {
     reply_markup: {
       inline_keyboard: [[{ text: E.copy + " Copy CA", copy_text: { text: CA } }]],
@@ -283,27 +256,26 @@ async function sendCaReply(ctx) {
 }
 
 // - X / Twitter reply -
-var xPrompts = [
-  "Write exactly 1-2 calm lines about why following $WOLVE on X is useful. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about $WOLVE X page. Brief and real. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines inviting someone to follow $WOLVE on X. No hype. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about staying updated on $WOLVE via X. Short and simple. Do NOT say IGNORE.",
-  "Write exactly 1-2 lines about $WOLVE on X. Calm and confident. Do NOT say IGNORE.",
+// X captions hardcoded - short and clean
+var xCaptions = [
+  "Follow $WOLVE on X for updates.",
+  "Stay updated. Follow us on X.",
+  "All announcements go out on X first.",
+  "The pack moves on X. Follow along.",
+  "News, updates, alpha. All on X.",
 ];
-var xPromptIdx = 0;
+var xIdx = 0;
 
-async function buildXCaption() {
-  var prompt = xPrompts[xPromptIdx % xPrompts.length];
-  xPromptIdx++;
-  var aiText = await askGroqUnique(systemPrompt(false), prompt);
-  if (!aiText || aiText.trim().toUpperCase() === "IGNORE") {
-    aiText = "Follow $WOLVE on X for updates.";
-  }
-  return aiText + "\n\n@WOLVERINEbsc";
+function buildXCaption() {
+  var line = xCaptions[xIdx % xCaptions.length];
+  xIdx++;
+  return line + "\n\n@WOLVERINEbsc";
 }
 
+
+
 async function sendXReply(ctx) {
-  var caption = await buildXCaption();
+  var caption = buildXCaption();
   await sendImageWithStore(lastXMsgId, ctx.chat.id, caption, {
     reply_markup: {
       inline_keyboard: [[{ text: E.bird + " Follow on X", url: TWITTER }]],
@@ -355,15 +327,16 @@ function getSocialsMsg() {
 }
 
 // - Silence breaker -
-var silenceAngles = [
-  "Write exactly 3-4 short punchy lines about why right now is a good time to hold $WOLVE. Be direct and real, no fluff, no essays.",
-  "Write exactly 3-4 lines about the early opportunity in $WOLVE. Sharp and to the point. No filler.",
-  "Write exactly 3-4 lines comparing $WOLVE to early DOGE or PEPE. Keep it punchy and believable.",
-  "Write exactly 3-4 lines about $WOLVE clean fundamentals: renounced, locked, low tax. No filler words.",
-  "Write exactly 3-4 lines about why early $WOLVE holders are positioned well. Confident, calm, brief.",
-  "Write exactly 3-4 lines about the $WOLVE community holding strong. Short, warm, and genuine.",
-  "Write exactly 3-4 lines about why silent accumulation in $WOLVE is the smart play right now.",
-  "Write exactly 3-4 lines about $WOLVE resilience. Claws out energy. Keep it tight and punchy.",
+// Silence breaker messages - hardcoded, short, meaningful
+var silenceMsgs = [
+  "Still early. $WOLVE hasn\u2019t made its move yet. Accumulate while it\u2019s quiet.",
+  "Renounced. LP locked. 5/5 tax. $WOLVE is built clean. Do your research.",
+  "The best entries happen in silence. $WOLVE is in that phase right now.",
+  "Community is growing. Dev is active. $WOLVE is moving at its own pace.",
+  "Early DOGE holders laughed too. Stay patient, stay $WOLVE.",
+  "No noise. No fake hype. Just $WOLVE building quietly on BSC.",
+  "4.9% max wallet means no whale can dump on you. That\u2019s the point.",
+  "Locked liquidity. Renounced contract. Your funds are protected in $WOLVE.",
 ];
 var silenceIdx = 0;
 
@@ -374,13 +347,9 @@ async function fireSilenceBreaker() {
     silenceTimer = setTimeout(fireSilenceBreaker, 60000);
     return;
   }
-  var prompt = silenceAngles[silenceIdx % silenceAngles.length];
+  var caption = silenceMsgs[silenceIdx % silenceMsgs.length];
   silenceIdx++;
   try {
-    var caption = await askGroqUnique(systemPrompt(caUnlocked), prompt);
-    if (!caption || caption.trim().toUpperCase() === "IGNORE") {
-      caption = "$WOLVE is building. Claws out.";
-    }
     await sendImageWithStore(lastSilenceStore, groupChatId, caption, {});
   } catch (_) {}
   resetSilence();
@@ -705,7 +674,7 @@ bot.on("message", async function(ctx) {
   if (isDM) {
     try {
       var dmReply = await askGroqUnique(systemPrompt(caUnlocked), text);
-      if (dmReply !== "IGNORE") {
+      if (dmReply !== "SKIP" && dmReply !== "IGNORE") {
         return ctx.reply(dmReply);
       }
     } catch (_) {}
@@ -738,7 +707,7 @@ bot.on("message", async function(ctx) {
     if (!isProjectQuestion) return;
     try {
       var aiReply = await askGroqUnique(systemPrompt(caUnlocked), text);
-      if (aiReply === "IGNORE") return;
+      if (aiReply === "SKIP" || aiReply === "IGNORE") return;
       return ctx.reply(aiReply);
     } catch (_) {}
   }

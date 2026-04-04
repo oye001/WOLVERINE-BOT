@@ -360,7 +360,10 @@ var silenceIdx = 0;
 var lastSilenceStore = {}; // dedicated store for silence breaker
 
 async function fireSilenceBreaker() {
-  if (!groupChatId) { resetSilence(); return; }
+  if (!groupChatId) {
+    silenceTimer = setTimeout(fireSilenceBreaker, 60000);
+    return;
+  }
   var prompt = silenceAngles[silenceIdx % silenceAngles.length];
   silenceIdx++;
   try {
@@ -442,6 +445,18 @@ function isBuyRequest(text) {
   var t = text.toLowerCase();
   return t.indexOf("how to buy") !== -1 || t.indexOf("where to buy") !== -1 || t.indexOf("buy ") !== -1 || t === "buy";
 }
+
+// - Global middleware: capture group chat ID from any update -
+bot.use(function(ctx, next) {
+  if (ctx.chat && (ctx.chat.type === "group" || ctx.chat.type === "supergroup")) {
+    if (!groupChatId) {
+      groupChatId = ctx.chat.id;
+      console.log("Group chat ID captured: " + groupChatId);
+    }
+    resetSilence();
+  }
+  return next();
+});
 
 // - Commands -
 bot.command("start", function(ctx) {
